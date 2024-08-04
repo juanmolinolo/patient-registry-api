@@ -63,7 +63,7 @@ class PatientController extends Controller
         {
             $patientData = $validator->validated();
 
-            $patientData['image_route'] = $request->file('image')->store('patient-images', 'public');
+            $patientData['image_route'] = $request->file('image')->store('public');
 
             $patient = Patient::create($patientData);
 
