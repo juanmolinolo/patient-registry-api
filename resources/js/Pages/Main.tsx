@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Head } from '@inertiajs/react';
 import Modal from '../Components/Modal';
+import Form from '../Components/Form';
+import PatientView from '../Components/PatientView';
 
 type Card = {
     id: number;
@@ -31,7 +33,6 @@ export default function Main() {
         try {
             const response = await fetch('http://localhost/api/patients');
             const result = await response.json();
-            console.log(result);
             const data = result.data.map((item: any) => ({
                 id: item.id,
                 name: item.name,
@@ -127,135 +128,18 @@ export default function Main() {
                     />
                 </div>
                 <div className="w-full max-w-7xl flex space-x-4">
-                    {/* Left Card with Form */}
-                    <div className="bg-[#1a1a1a] p-6 shadow-lg rounded-lg">
-                        <h2 className="text-xl font-semibold mb-4 text-center">Add a new patient</h2>
-                        <form onSubmit={handleSubmit}>
-                            <div className="mb-4">
-                                <label className="block text-gray-300 text-sm font-bold mb-2" htmlFor="name">
-                                    Name
-                                </label>
-                                <input
-                                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                    id="name"
-                                    type="text"
-                                    placeholder="Enter your name"
-                                    value={formData.name}
-                                    onChange={handleInputChange}
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-gray-300 text-sm font-bold mb-2" htmlFor="email">
-                                    Email
-                                </label>
-                                <input
-                                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                    id="email"
-                                    type="email"
-                                    placeholder="Enter your email"
-                                    value={formData.email}
-                                    onChange={handleInputChange}
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-gray-300 text-sm font-bold mb-2" htmlFor="address">
-                                    Address
-                                </label>
-                                <input
-                                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                    id="address"
-                                    type="text"
-                                    placeholder="Enter your address"
-                                    value={formData.address}
-                                    onChange={handleInputChange}
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-gray-300 text-sm font-bold mb-2" htmlFor="phone">
-                                    Phone number
-                                </label>
-                                <input
-                                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                    id="phone"
-                                    type="text"
-                                    placeholder="Enter your phone number"
-                                    value={formData.phone}
-                                    onChange={handleInputChange}
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-gray-300 text-sm font-bold mb-2" htmlFor="password">
-                                    Password
-                                </label>
-                                <input
-                                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                    id="password"
-                                    type="password"
-                                    placeholder="Enter your password"
-                                    value={formData.password}
-                                    onChange={handleInputChange}
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-gray-300 text-sm font-bold mb-2" htmlFor="image">
-                                    I.D. image
-                                </label>
-                                <input
-                                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                    id="image"
-                                    type="file"
-                                    onChange={handleInputChange}
-                                />
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <button
-                                    className="bg-[#7345fc] hover:bg-[#9572fd] text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                                    type="submit"
-                                >
-                                    Submit
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+                    {/* Left card with form */}
+                    <Form formData={formData} handleInputChange={handleInputChange} handleSubmit={handleSubmit} />
 
-                    {/* Right Card with Bigger Cards */}
-                    <div className="flex flex-col justify-center items-center w-full bg-[#1a1a1a] p-6 shadow-lg rounded-lg">
-                        <h2 className="text-xl font-semibold mb-4">Patients</h2>
-                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2 w-full">
-                            {currentCards.map((card) => (
-                                <div
-                                    key={card.id}
-                                    className="bg-[#2c2c2c] p-6 rounded-lg shadow cursor-pointer flex flex-col justify-between"
-                                    onClick={() => handleCardClick(card)}
-                                >
-                                    <img
-                                        src={'https://via.placeholder.com/600x400?text=' + card.image}
-                                        alt={card.name}
-                                        className="w-full h-48 object-cover rounded-md mb-4"
-                                    />
-                                    <h3 className="text-xl font-semibold text-gray-300">{card.name}</h3>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Pagination Controls */}
-                        <div className="flex justify-between mt-4 w-full">
-                            <button
-                                onClick={handlePrevPage}
-                                disabled={currentPage === 1}
-                                className={`px-4 py-2 rounded ${currentPage === 1 ? 'bg-gray-600' : 'bg-[#7345fc] hover:bg-[#9572fd] text-white'}`}
-                            >
-                                Previous
-                            </button>
-                            <button
-                                onClick={handleNextPage}
-                                disabled={currentPage === totalPages}
-                                className={`px-4 py-2 rounded ${currentPage === totalPages ? 'bg-gray-600' : 'bg-[#7345fc] hover:bg-[#9572fd] text-white'}`}
-                            >
-                                Next
-                            </button>
-                        </div>
-                    </div>
+                    {/* Right card with patients cards embedded */}
+                    <PatientView
+                        cards={currentCards}
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        handleCardClick={handleCardClick}
+                        handlePrevPage={handlePrevPage}
+                        handleNextPage={handleNextPage}
+                    />
                 </div>
             </div>
 
