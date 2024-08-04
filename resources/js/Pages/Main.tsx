@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Head } from '@inertiajs/react';
-import Modal from '../Components/Modal';
 import Form from '../Components/Form';
 import PatientView from '../Components/PatientView';
+import MessageModal from '../Components/MessageModal';
+import PatientModal from '../Components/PatientModal';
 
 type Card = {
     id: number;
@@ -14,7 +15,8 @@ type Card = {
 };
 
 export default function Main() {
-    const [showModal, setShowModal] = useState(false);
+    const [showMessageModal, setShowMessageModal] = useState(false);
+    const [showPatientModal, setShowPatientModal] = useState(false);
     const [selectedCard, setSelectedCard] = useState<Card | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [cards, setCards] = useState<Card[]>([]);
@@ -23,13 +25,17 @@ export default function Main() {
         email: '',
         address: '',
         phone: '',
+        countryCode: '',
         password: '',
         image: null
     });
     const [modalMessage, setModalMessage] = useState('');
-    const [isFormSubmit, setIsFormSubmit] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isFormLoading, setIsFormLoading] = useState(false);
 
     const fetchData = async () => {
+        setIsLoading(true);
         try {
             const response = await fetch('http://localhost/api/patients');
             const result = await response.json();
@@ -44,6 +50,8 @@ export default function Main() {
             setCards(data);
         } catch (error) {
             console.error('Error fetching data:', error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -51,50 +59,75 @@ export default function Main() {
         fetchData();
     }, []);
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { id, value, files } = e.target;
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLSelectElement>) => {
+        const { id, value, files } = e.target as HTMLInputElement;
         if (files) {
             setFormData({ ...formData, [id]: files[0] });
         } else {
-            setFormData({ ...formData, [id]: value });
+            if (id === "phoneNumber") {
+                setFormData({ ...formData, phone: value });
+            } else {
+                setFormData({ ...formData, [id]: value });
+            }
         }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
+        setIsFormLoading(true);
+    
         const formDataToSubmit = new FormData();
         formDataToSubmit.append('name', formData.name);
         formDataToSubmit.append('email', formData.email);
         formDataToSubmit.append('address', formData.address);
-        formDataToSubmit.append('phone_number', formData.phone);
+        formDataToSubmit.append('phone_number', formData.countryCode + formData.phone);
         formDataToSubmit.append('password', formData.password);
         if (formData.image) {
             formDataToSubmit.append('image', formData.image);
         }
-
+    
         try {
             const response = await fetch('http://localhost/api/patients', {
                 method: 'POST',
                 body: formDataToSubmit
             });
-
+    
             if (response.ok) {
+                const result = await response.json();
+                const newPatient = {
+                    id: result.patient.id,
+                    name: result.patient.name,
+                    email: result.patient.email,
+                    address: result.patient.address,
+                    phone_number: result.patient.phone_number,
+                    image: result.patient.image_route
+                };
+    
+                const storedPatients = JSON.parse(localStorage.getItem('patients') || '[]');
+    
+                storedPatients.push(newPatient);
+                
+                localStorage.setItem('patients', JSON.stringify(storedPatients));
+    
                 setModalMessage('Patient added successfully!');
+                setIsSuccess(true);
                 fetchData();
             } else {
-                setModalMessage('Error adding patient. Please try again.');
+                const result = await response.json();
+                setModalMessage(`Error adding patient. ${result.message}`);
+                setIsSuccess(false);
             }
         } catch (error) {
             console.error('Error submitting form:', error);
             setModalMessage('Error adding patient. Please try again.');
+            setIsSuccess(false);
+        } finally {
+            setIsFormLoading(false);
         }
-
-        setSelectedCard(null); // Clear the selected card
-        setIsFormSubmit(true); // Indicate that the modal was triggered by form submission
-        setShowModal(true);
+    
+        setShowMessageModal(true);
     };
-
+    
     const cardsPerPage = 4;
     const totalPages = Math.ceil(cards.length / cardsPerPage);
     const indexOfLastCard = currentPage * cardsPerPage;
@@ -103,8 +136,7 @@ export default function Main() {
 
     const handleCardClick = (card: Card) => {
         setSelectedCard(card);
-        setIsFormSubmit(false); // Indicate that the modal was triggered by card click
-        setShowModal(true);
+        setShowPatientModal(true);
     };
 
     const handlePrevPage = () => {
@@ -129,9 +161,9 @@ export default function Main() {
                 </div>
                 <div className="w-full max-w-7xl flex space-x-4">
                     {/* Left card with form */}
-                    <Form formData={formData} handleInputChange={handleInputChange} handleSubmit={handleSubmit} />
+                    <Form formData={formData} handleInputChange={handleInputChange} handleSubmit={handleSubmit} isFormLoading={isFormLoading} />
 
-                    {/* Right card with patients cards embedded */}
+                    {/* Right card with patient cards */}
                     <PatientView
                         cards={currentCards}
                         currentPage={currentPage}
@@ -139,32 +171,25 @@ export default function Main() {
                         handleCardClick={handleCardClick}
                         handlePrevPage={handlePrevPage}
                         handleNextPage={handleNextPage}
+                        isLoading={isLoading}
                     />
                 </div>
             </div>
 
-            {/* Modal */}
-            {showModal && (
-                <Modal show={showModal} onClose={() => setShowModal(false)} maxWidth="md">
-                    <div className="p-6">
-                        {isFormSubmit ? (
-                            <p>{modalMessage}</p>
-                        ) : (
-                            <>
-                                <h2 className="text-xl font-semibold mb-4">{selectedCard?.name}</h2>
-                                <img
-                                    src={'https://via.placeholder.com/600x400?text=' + selectedCard?.image}
-                                    alt={selectedCard?.name}
-                                    className="w-full h-48 object-cover rounded-md mb-4"
-                                />
-                                <p>Email: {selectedCard?.email}</p>
-                                <p>Address: {selectedCard?.address}</p>
-                                <p>Phone: {selectedCard?.phone_number}</p>
-                            </>
-                        )}
-                    </div>
-                </Modal>
-            )}
+            {/* Message modal */}
+            <MessageModal
+                show={showMessageModal}
+                onClose={() => setShowMessageModal(false)}
+                message={modalMessage}
+                isSuccess={isSuccess}
+            />
+
+            {/* Patient modal */}
+            <PatientModal
+                show={showPatientModal}
+                onClose={() => setShowPatientModal(false)}
+                selectedCard={selectedCard}
+            />
         </>
     );
 }
