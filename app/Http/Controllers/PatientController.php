@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Http\Resources\PatientResource;
 use App\Http\Resources\PatientCollection;
 use App\Jobs\SendPatientRegisteredEmail;
+//use App\Jobs\SendPatientRegisteredSms;
 
 class PatientController extends Controller
 {
@@ -63,6 +64,7 @@ class PatientController extends Controller
             $patient = Patient::create($patientData);
 
             SendPatientRegisteredEmail::dispatch($patient);
+            //SendPatientRegisteredSms::dispatch($patient);
 
             return response()->json([
                 'message' => 'Patient created successfully.',

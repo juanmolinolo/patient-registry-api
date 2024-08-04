@@ -29,7 +29,7 @@ export default function Main() {
         password: '',
         image: null
     });
-    const [modalMessage, setModalMessage] = useState('');
+    const [modalMessages, setModalMessages] = useState<string[]>([]);
     const [isSuccess, setIsSuccess] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isFormLoading, setIsFormLoading] = useState(false);
@@ -92,8 +92,9 @@ export default function Main() {
                 body: formDataToSubmit
             });
     
+            const result = await response.json();
+    
             if (response.ok) {
-                const result = await response.json();
                 const newPatient = {
                     id: result.patient.id,
                     name: result.patient.name,
@@ -104,22 +105,27 @@ export default function Main() {
                 };
     
                 const storedPatients = JSON.parse(localStorage.getItem('patients') || '[]');
-    
                 storedPatients.push(newPatient);
-                
                 localStorage.setItem('patients', JSON.stringify(storedPatients));
     
-                setModalMessage('Patient added successfully!');
+                setModalMessages(['Patient added successfully!']);
                 setIsSuccess(true);
                 fetchData();
             } else {
-                const result = await response.json();
-                setModalMessage(`Error adding patient. ${result.message}`);
+                let errorMessages: string[] = ['Error adding patient.'];
+                if (result.errors) {
+                    const errorDetails = Object.entries(result.errors as { [key: string]: string[] })
+                        .flatMap(([field, messages]) => messages.map(msg => `${capitalizeFirstLetter(field)}: ${msg}`));
+                    errorMessages = [...errorMessages, ...errorDetails];
+                } else {
+                    errorMessages.push(result.message || 'Please try again.');
+                }
+                setModalMessages(errorMessages);
                 setIsSuccess(false);
             }
         } catch (error) {
             console.error('Error submitting form:', error);
-            setModalMessage('Error adding patient. Please try again.');
+            setModalMessages(['Error adding patient. Please try again.']);
             setIsSuccess(false);
         } finally {
             setIsFormLoading(false);
@@ -127,6 +133,11 @@ export default function Main() {
     
         setShowMessageModal(true);
     };
+    
+    function capitalizeFirstLetter(string: string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+    
     
     const cardsPerPage = 4;
     const totalPages = Math.ceil(cards.length / cardsPerPage);
@@ -159,7 +170,7 @@ export default function Main() {
                         className="navbar_logo"
                     />
                 </div>
-                <div className="w-full max-w-7xl flex space-x-4">
+                <div className="w-full max-w-7xl flex space-x-3">
                     {/* Left card with form */}
                     <Form formData={formData} handleInputChange={handleInputChange} handleSubmit={handleSubmit} isFormLoading={isFormLoading} />
 
@@ -180,7 +191,7 @@ export default function Main() {
             <MessageModal
                 show={showMessageModal}
                 onClose={() => setShowMessageModal(false)}
-                message={modalMessage}
+                messages={modalMessages}
                 isSuccess={isSuccess}
             />
 

@@ -59,7 +59,7 @@ const PatientView: React.FC<PatientViewProps> = ({
                         ))}
                     </div>
 
-                    {/* Pagination Controls */}
+                    {/* Pagination controls */}
                     <div className="flex justify-between mt-4 w-full">
                         <button
                             onClick={handlePrevPage}

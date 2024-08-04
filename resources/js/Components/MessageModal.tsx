@@ -4,11 +4,11 @@ import Modal from '../Components/Modal';
 interface MessageModalProps {
     show: boolean;
     onClose: () => void;
-    message: string;
+    messages: string[];
     isSuccess: boolean;
 }
 
-const MessageModal: React.FC<MessageModalProps> = ({ show, onClose, message, isSuccess }) => {
+const MessageModal: React.FC<MessageModalProps> = ({ show, onClose, messages, isSuccess }) => {
     return (
         <Modal show={show} onClose={onClose} maxWidth="md">
             <div className="p-6 text-center">
@@ -47,7 +47,9 @@ const MessageModal: React.FC<MessageModalProps> = ({ show, onClose, message, isS
                         </svg>
                     </div>
                 )}
-                <p>{message}</p>
+                {messages.map((message: string, index: number) => (
+                    <p key={index}>{message}</p>
+                ))}
             </div>
         </Modal>
     );

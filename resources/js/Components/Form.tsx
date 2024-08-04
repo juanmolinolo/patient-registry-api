@@ -31,7 +31,7 @@ const Form: React.FC<FormProps> = ({ formData, handleInputChange, handleSubmit, 
     });
 
     const [showMessageModal, setShowMessageModal] = useState(false);
-    const [modalMessage, setModalMessage] = useState('');
+    const [modalMessages, setModalMessages] = useState<string[]>([]);
     const [isSuccess, setIsSuccess] = useState(false);
 
     const validateInputs = () => {
@@ -65,7 +65,7 @@ const Form: React.FC<FormProps> = ({ formData, handleInputChange, handleSubmit, 
             const file = files[0];
             const allowedExtensions = /(\.jpg|\.jpeg)$/i;
             if (!allowedExtensions.exec(file.name)) {
-                setModalMessage('Please upload .jpg file type only.');
+                setModalMessages(['Please upload .jpg file type only.']);
                 setIsSuccess(false);
                 setShowMessageModal(true);
                 (e.target as HTMLInputElement).value = '';
@@ -164,11 +164,11 @@ const Form: React.FC<FormProps> = ({ formData, handleInputChange, handleSubmit, 
                     {isFormLoading && <div className="ml-4"><LoadingSpinner /></div>}
                 </div>
             </form>
-            {/* Message Modal */}
+            {/* Message modal */}
             <MessageModal
                 show={showMessageModal}
                 onClose={() => setShowMessageModal(false)}
-                message={modalMessage}
+                messages={modalMessages}
                 isSuccess={isSuccess}
             />
         </div>
