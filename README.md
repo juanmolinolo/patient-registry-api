@@ -76,7 +76,7 @@ During the development of this project, a few complications were encountered:
 - **Laravel's Symlink for Storage**: Despite following the [Laravel docs instructions on setting up a public disk](https://laravel.com/docs/11.x/filesystem#the-public-disk), I was not able to get it done. I'm still not sure the reason behind it. For this reason, despite being able to store new patient images, I was not able to access them and display them on the frontend. React currently displays a stock image for all patients.
 - **View Cache Issues**: Changes to the views were not reflecting immediately due to Laravel's view caching. This was resolved by running `php artisan view:clear` to clear the cached views whenever changes were made.
 - **CSRF Token Issues**: All POST operations were initially blocked by the need for a CSRF token. This was resolved by setting up a specific `api.php` file for endpoints, that is ingored by the CSRF middleware by default.
-- **Weird .env behaviour**: For some reason, when specifying the `DB_HOST=` value on the `.env` file, I could only run artisan database commands as long as the value was my local IP: `DB_HOST=127.0.0.1`, despite Sails'the value being set as `DB_HOST=mysql` by default.
+- **Weird .env behaviour**: For some reason, when specifying the `DB_HOST=` value on the `.env` file, I could only run artisan database commands as long as the value was my local IP: `DB_HOST=127.0.0.1`, despite Sails' value being set as `DB_HOST=mysql` by default.
 
 ## Conclusion
 
