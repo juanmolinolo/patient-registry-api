@@ -34,18 +34,19 @@ const Form: React.FC<FormProps> = ({ formData, handleInputChange, handleSubmit, 
     const [modalMessages, setModalMessages] = useState<string[]>([]);
     const [isSuccess, setIsSuccess] = useState(false);
 
-    const validateInputs = () => {
-        const nameRegex = /^[A-Za-z\s]+$/;
-        const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
-        const phoneRegex = /^[0-9]+$/;
+    const nameRegex = /^[A-Za-z\s]+$/;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+    const phoneRegex = /^[0-9]+$/;
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
 
+    const validateInputs = () => {
         const errors = {
             name: !formData.name || !nameRegex.test(formData.name),
             email: !formData.email || !emailRegex.test(formData.email),
             address: !formData.address,
             phone: !formData.phone || !phoneRegex.test(formData.phone),
             countryCode: !formData.countryCode,
-            password: !formData.password,
+            password: !formData.password || !passwordRegex.test(formData.password),
             image: !formData.image,
         };
         setValidationErrors(errors);
@@ -61,6 +62,7 @@ const Form: React.FC<FormProps> = ({ formData, handleInputChange, handleSubmit, 
 
     const handleInputChangeWithErrorReset = (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLSelectElement>) => {
         const { id, value, files } = e.target as HTMLInputElement;
+
         if (files && id === 'image') {
             const file = files[0];
             const allowedExtensions = /(\.jpg|\.jpeg)$/i;
@@ -79,11 +81,13 @@ const Form: React.FC<FormProps> = ({ formData, handleInputChange, handleSubmit, 
             setValidationErrors({
                 ...validationErrors,
                 [id]: !value ||
-                    (id === 'name' && !/^[A-Za-z\s]+$/.test(value)) ||
-                    (id === 'email' && !/^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(value)) ||
-                    (id === 'phone' && !/^[0-9]+$/.test(value)) ||
-                    (id === 'countryCode' && !value)
+                    (id === 'name' && !nameRegex.test(value)) ||
+                    (id === 'email' && !emailRegex.test(value)) ||
+                    (id === 'phone' && !phoneRegex.test(value)) ||
+                    (id === 'countryCode' && !value) ||
+                    (id === 'password' && !passwordRegex.test(value))
             });
+
             handleInputChange(e);
         }
     };
@@ -137,6 +141,7 @@ const Form: React.FC<FormProps> = ({ formData, handleInputChange, handleSubmit, 
                         value={formData.password}
                         onChange={handleInputChangeWithErrorReset}
                         hasError={validationErrors.password}
+                        tooltip="Password must be at least 8 characters long, include letters, numbers, and a symbol."
                     />
                     <div className="mb-4">
                         <label className="block text-gray-300 text-sm font-bold mb-2" htmlFor="image">
